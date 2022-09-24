@@ -1,5 +1,7 @@
+from urllib import request
 from django.shortcuts import render
 import markdown
+import random
 
 from . import util
 
@@ -50,3 +52,51 @@ def search(request):
             return render(request, "encyclopedia/search.html", {
                 "recommendations": recommendations
             })
+
+def newPage(request):
+    if request.method == "GET":
+        return render(request, "encyclopedia/new.html")
+    else:
+        title = request.POST['title']
+        content = request.POST['content']
+        isTitle = util.get_entry(title)
+        if isTitle is not None:
+            return render(request, "encyclopedia/error.html", {
+                "message": "Entry page already exist"
+            })
+        else:
+            util.save_entry(title, content)
+            htmlContent = convertMd2HTML(title)
+            return render(request, "encyclopedia/entry.html", {
+                "title": title,
+                "content": htmlContent, 
+            })
+
+def editPage(request):
+    if request.method == "POST":
+        title = request.POST['entryTitle']
+        content = util.get_entry(title)
+        return render(request, "encyclopedia/edit.html", {
+            "title": title,
+            "content": content
+        })
+
+def saveEdit(request):
+    if request.method == "POST":
+        title = request.POST['title']
+        content = request.POST['content']
+        util.save_entry(title, content)
+        htmlContent = convertMd2HTML(title)
+        return render(request, "encyclopedia/entry.html", {
+            "title": title,
+            "content": htmlContent, 
+        })
+
+def rand(request):
+    allEntries = util.list_entries()
+    randomEntry = random.choice(allEntries)
+    htmlContent = convertMd2HTML(randomEntry)
+    return render(request, "encyclopedia/entry.html", {
+        "title": randomEntry,
+        "content": htmlContent, 
+    })
