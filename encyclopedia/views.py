@@ -31,3 +31,22 @@ def entry(request, title):
             "title": title,
             "content": htmlContent
         })
+
+def search(request):
+    if request.method == "POST":
+        entrySearch = request.POST['q']
+        htmlContent = convertMd2HTML(entrySearch)
+        if htmlContent is not None:
+            return render(request, "encyclopedia/entry.html", {
+                "title": entrySearch,
+                "content": htmlContent
+            })
+        else:
+            allEntries = util.list_entries()
+            recommendations = []
+            for entry in allEntries:
+                if entrySearch.lower() in entry.lower():
+                    recommendations.append(entry)
+            return render(request, "encyclopedia/search.html", {
+                "recommendations": recommendations
+            })
